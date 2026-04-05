@@ -3,61 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 차트분석 v1.01</title>
+    <title>AI 차트분석 v1.02</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0f172a; color: #f8fafc; font-family: 'Pretendard', sans-serif; overflow-x: hidden; }
         .chart-container { background: #1e293b; border-radius: 16px; border: 2px solid #334155; position: relative; }
         
-        /* 선 굵기 강화 (모바일 가독성) */
-        .main-line { stroke: #64748b; stroke-width: 4; fill: none; }
-        .pattern-line { stroke: #fbbf24; stroke-width: 5; fill: none; }
-        .neckline { stroke: #f43f5e; stroke-width: 4; }
+        /* 선 굵기 및 스타일 최적화 */
+        .main-line { stroke: #64748b; stroke-width: 4; fill: none; transition: all 1s; }
+        .pattern-line { stroke: #fbbf24; stroke-width: 6; fill: none; }
+        .neckline { stroke: #f43f5e; stroke-width: 5; }
         
-        /* 가이드라인 및 타겟라인 */
-        .target-line { stroke: #ef4444; stroke-width: 3; stroke-dasharray: 10; opacity: 0; transition: opacity 0.8s; }
+        /* 타겟 라인: 굵은 빨간 실선으로 변경 */
+        .target-line { stroke: #ef4444; stroke-width: 6; opacity: 0; transition: opacity 0.5s; }
         .fibo-line { stroke: #3b82f6; stroke-width: 2; stroke-dasharray: 5; opacity: 0; transition: opacity 0.8s; }
         
         .h-vector { stroke: #10b981; stroke-width: 5; stroke-dasharray: 10; transition: all 1.2s; opacity: 0; }
         
-        @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-        .target-reached { animation: pulse-red 1.5s infinite; }
+        /* 반등 애니메이션용 */
+        .bounce-line { stroke: #10b981; stroke-width: 4; fill: none; stroke-dasharray: 8; opacity: 0; transition: opacity 1s; }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .target-active { animation: blink 1s infinite; }
     </style>
 </head>
 <body class="p-4 md:p-8">
     <div class="max-w-6xl mx-auto">
         <header class="mb-6 border-b-2 border-slate-700 pb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div>
-                <h1 class="text-4xl font-black text-blue-400 tracking-tighter">AI 차트분석 <span class="text-emerald-400">v1.01</span></h1>
-                <p class="text-slate-400 mt-2 font-medium">Elliott Wave & Pattern Engine: <span class="text-white underline decoration-yellow-500">Head & Shoulders</span></p>
+                <h1 class="text-4xl font-black text-blue-400 tracking-tighter">AI 차트분석 <span class="text-emerald-400">v1.02</span></h1>
+                <p class="text-slate-400 mt-2 font-medium">Technical Analysis Engine: <span class="text-white underline decoration-yellow-500">Head & Shoulders Strategy</span></p>
             </div>
-            <button onclick="runAnalysis()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg shadow-blue-900/20 transition-all active:scale-95">
+            <button onclick="runAnalysis()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg transition-all active:scale-95">
                 분석 실행 (Analyze)
             </button>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 chart-container p-4 md:p-6 shadow-2xl">
-                <svg viewBox="0 0 800 500" class="w-full h-auto" id="main-svg">
+                <svg viewBox="0 0 800 550" class="w-full h-auto" id="main-svg">
                     <g stroke="#334155" stroke-width="1">
-                        <path d="M 0 100 H 800 M 0 200 H 800 M 0 300 H 800 M 0 400 H 800" />
+                        <path d="M 0 100 H 800 M 0 200 H 800 M 0 300 H 800 M 0 400 H 800 M 0 500 H 800" />
                     </g>
                     
-                    <polyline points="50,350 150,200 250,300 400,80 550,300 650,200 750,480" class="main-line" />
+                    <polyline id="price-action" points="50,350 150,200 250,300 400,80 550,300 650,200 720,450" class="main-line" />
                     
+                    <polyline id="bounce-action" points="720,450 760,318.5" class="bounce-line" />
+
                     <polyline points="150,200 250,300 400,80 550,300 650,200" class="pattern-line" />
                     
                     <line x1="220" y1="300" x2="580" y2="300" class="neckline" />
 
-                    <line id="fibo-line" x1="50" y1="318.5" x2="750" y2="318.5" class="fibo-line" />
-                    <text id="fibo-text" x="60" y="310" fill="#3b82f6" class="text-xs opacity-0 font-bold">Fibo 0.618 (51.5)</text>
+                    <line id="fibo-line" x1="50" y1="318.5" x2="780" y2="318.5" class="fibo-line" />
+                    <text id="fibo-text" x="60" y="310" fill="#3b82f6" class="text-xs opacity-0 font-bold tracking-widest">FIBONACCI 0.618 REBOUND ZONE</text>
 
                     <line id="h-vector" x1="400" y1="80" x2="400" y2="300" class="h-vector" />
                     
-                    <line id="target-guideline" x1="50" y1="450" x2="750" y2="450" class="target-line" />
-                    <line id="projection-vector" x1="720" y1="300" x2="720" y2="300" stroke="#ef4444" stroke-width="5" stroke-dasharray="10" class="transition-all duration-1000" />
+                    <line id="target-line" x1="50" y1="450" x2="750" y2="450" class="target-line" />
+                    <line id="projection-vector" x1="720" y1="300" x2="720" y2="450" stroke="#ef4444" stroke-width="6" class="opacity-0 transition-all duration-1000" />
                     
-                    <text id="target-label" x="600" y="440" fill="#ef4444" class="opacity-0 font-black text-xl">TARGET REACHED (40.0)</text>
+                    <text id="target-label" x="630" y="440" fill="#ef4444" class="opacity-0 font-black text-2xl tracking-tighter">TARGET</text>
 
                     <text x="380" y="60" fill="white" font-weight="bold">HEAD</text>
                     <text x="210" y="325" fill="#f43f5e" font-weight="bold">NECKLINE</text>
@@ -67,7 +72,7 @@
             <div class="space-y-4">
                 <div class="bg-slate-800 p-6 rounded-2xl border-2 border-slate-700 shadow-xl">
                     <h4 class="text-xl font-black text-blue-400 mb-6 flex items-center gap-2">
-                        <span class="w-2 h-6 bg-blue-500 rounded-full"></span> REAL-TIME DATA
+                        <span class="w-2 h-6 bg-blue-500 rounded-full"></span> ANALYSIS DATA
                     </h4>
                     <div class="space-y-5 font-mono">
                         <div class="flex justify-between items-center text-slate-400 border-b border-slate-700 pb-2">
@@ -78,20 +83,15 @@
                             <span>Neckline</span>
                             <span class="text-rose-400 font-bold text-lg">70.0</span>
                         </div>
-                        <div class="flex justify-between items-center text-emerald-400 font-bold pb-2">
-                            <span>Pattern Height (H)</span>
-                            <span id="side-h" class="text-xl">0.0</span>
-                        </div>
                         
                         <div class="mt-4 p-4 bg-slate-900 rounded-xl border border-blue-500/30">
-                            <p class="text-xs text-blue-400 mb-2 uppercase tracking-widest font-bold">Fibonacci 0.618</p>
-                            <p id="side-fibo" class="text-xl text-blue-200">---</p>
-                            <p class="text-[10px] text-slate-500 mt-1">*1차 지지 예상 구간</p>
+                            <p class="text-xs text-blue-400 mb-2 uppercase tracking-widest font-bold">0.618 Rebound</p>
+                            <p id="side-fibo" class="text-xl text-blue-200">51.5</p>
                         </div>
 
-                        <div class="mt-4 p-4 bg-red-950/30 rounded-xl border border-red-500/30">
-                            <p class="text-xs text-red-400 mb-2 uppercase tracking-widest font-bold">Final Target (1:1)</p>
-                            <p id="side-target" class="text-3xl text-red-500 font-black tracking-tighter">---</p>
+                        <div class="mt-4 p-4 bg-red-950/30 rounded-xl border-2 border-red-500">
+                            <p class="text-xs text-red-400 mb-2 uppercase tracking-widest font-bold">Price Target</p>
+                            <p id="side-target" class="text-4xl text-red-500 font-black tracking-tighter">40.0</p>
                         </div>
                     </div>
                 </div>
@@ -101,22 +101,22 @@
         <footer class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-800/50 p-8 rounded-3xl border-2 border-slate-700">
             <div>
                 <h3 class="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                    <span class="text-yellow-500">💡</span> 분석 가이드
+                    <span class="text-yellow-500">📐</span> 패턴 정의 및 구조 (Pattern Anatomy)
                 </h3>
-                <ul class="space-y-3 text-slate-300 text-sm leading-relaxed">
-                    <li>• <strong class="text-white">패턴 정의:</strong> 상승 추세의 끝에서 나타나는 전형적인 반전 패턴으로, 세 개의 고점 중 가운데가 가장 높은 형태입니다.</li>
-                    <li>• <strong class="text-white">가독성 강화:</strong> v1.01에서는 모바일 환경을 고려하여 모든 추세선과 패턴선을 기존 대비 <span class="text-yellow-400">1.5배 굵게</span> 처리했습니다.</li>
-                    <li>• <strong class="text-white">타겟 가이드라인:</strong> 하락의 종착지를 시각적으로 인지할 수 있도록 하단 <span class="text-red-500">붉은색 수평 점선</span>을 배치했습니다.</li>
-                </ul>
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    헤드앤숄더는 세 개의 연속된 고점으로 구성되며, 가운데 고점(Head)이 양옆(Shoulders)보다 높게 형성되는 전형적인 <strong>추세 반전(Reversal)</strong> 패턴입니다. 
+                    심리적으로는 매수 세력이 직전 고점을 돌파하려는 시도가 최종적으로 실패했음을 의미하며, 넥라인(Neckline) 하향 돌파는 매도 우위 시장으로의 완전한 전환을 확정 짓습니다. 
+                    패턴의 대칭성과 넥라인의 기울기가 가파를수록 패턴 완성 시 하락의 신뢰도가 증가합니다.
+                </p>
             </div>
             <div>
                 <h3 class="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                    <span class="text-blue-500">📐</span> 피보나치 조정 시나리오
+                    <span class="text-blue-500">🔄</span> 타겟 도달 후 반등 시나리오
                 </h3>
                 <p class="text-slate-300 text-sm leading-relaxed">
-                    가격이 넥라인을 이탈할 때 무조건 최종 타겟까지 직행하는 것은 아닙니다. 
-                    본 프로그램은 <strong class="text-blue-400">피보나치 0.618(61.8%)</strong> 지점을 자동으로 계산하여 표시합니다. 
-                    이 지점은 하락 중 강력한 '기술적 반등'이 발생할 확률이 높은 구간으로, 단기 매수세가 유입될 수 있는 유의 구간입니다.
+                    가격이 설정된 <strong>TARGET(40.0)</strong> 지점에 도달하면 심리적 지지선이 형성됩니다. 
+                    이후 발생하는 반등은 이전 하락폭의 <strong>피보나치 0.618(51.5)</strong> 지점까지 이어지는 경우가 많습니다(리테스트). 
+                    만약 타겟 라인에서 반등이 강하게 일어나 0.618 구간을 안착한다면 하락 추세의 일시적 중단으로 보며, 반대로 해당 구간에서 다시 저항을 받는다면 추가 하락의 깃발형 패턴으로 전이될 가능성이 높습니다.
                 </p>
             </div>
         </footer>
@@ -124,58 +124,47 @@
 
     <script>
         function runAnalysis() {
-            // 요소 초기화
             const elements = {
                 hVec: document.getElementById('h-vector'),
                 fLine: document.getElementById('fibo-line'),
                 fText: document.getElementById('fibo-text'),
-                tLine: document.getElementById('target-guideline'),
+                tLine: document.getElementById('target-line'),
                 pVec: document.getElementById('projection-vector'),
                 tLab: document.getElementById('target-label'),
-                sH: document.getElementById('side-h'),
-                sF: document.getElementById('side-fibo'),
+                bLine: document.getElementById('bounce-action'),
                 sT: document.getElementById('side-target')
             };
 
-            // 상태 리셋
+            // 리셋
             elements.hVec.style.opacity = "1";
-            elements.fLine.style.opacity = "0";
-            elements.fText.style.opacity = "0";
+            elements.fLine.style.opacity = "1";
+            elements.fText.style.opacity = "1";
             elements.tLine.style.opacity = "0";
-            elements.pVec.setAttribute('y2', '300');
+            elements.pVec.style.opacity = "0";
+            elements.tLab.classList.remove('opacity-0', 'target-active');
             elements.tLab.classList.add('opacity-0');
+            elements.bLine.style.opacity = "0";
 
-            // 애니메이션 시나리오
-            setTimeout(() => {
-                elements.sH.innerText = "30.0";
-                elements.sH.classList.add('text-2xl');
-            }, 600);
-
-            // 피보나치 라인 표시
-            setTimeout(() => {
-                elements.fLine.style.opacity = "1";
-                elements.fText.style.opacity = "1";
-                elements.sF.innerText = "51.5 (70.0 - 18.5)";
-                elements.sF.classList.add('font-bold');
-            }, 1400);
-
-            // 최종 타겟 프로젝션
+            // 애니메이션 순서
+            // 1. 측정 화살표 표시 (0.5s)
+            // 2. 타겟 라인 및 화살표 투사 (1.5s)
             setTimeout(() => {
                 elements.tLine.style.opacity = "1";
-                elements.pVec.setAttribute('y2', '450');
-                
-                let val = 70.0;
-                const timer = setInterval(() => {
-                    val -= 1.0;
-                    elements.sT.innerText = val.toFixed(1);
-                    if(val <= 40.0) {
-                        clearInterval(timer);
-                        elements.sT.innerText = "40.0 (완료)";
-                        elements.tLab.classList.remove('opacity-0');
-                        elements.tLab.classList.add('target-reached');
-                    }
-                }, 30);
-            }, 2200);
+                elements.pVec.style.opacity = "1";
+            }, 1000);
+
+            // 3. 타겟 텍스트 표시
+            setTimeout(() => {
+                elements.tLab.classList.remove('opacity-0');
+                elements.tLab.classList.add('target-active');
+            }, 2000);
+
+            // 4. 반등 시나리오 (3s)
+            setTimeout(() => {
+                elements.bLine.style.opacity = "1";
+                elements.fText.innerText = "0.618 REBOUND CONFIRMED";
+                elements.fText.setAttribute('fill', '#10b981');
+            }, 3000);
         }
     </script>
 </body>
