@@ -3,129 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 차트분석 v1.03</title>
+    <title>AI 차트분석 v1.04</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0f172a; color: #f8fafc; font-family: 'Pretendard', sans-serif; overflow-x: hidden; }
         .chart-container { background: #1e293b; border-radius: 20px; border: 2px solid #334155; position: relative; }
         
-        /* 기본 차트선 (연한 회색) */
+        /* 차트 기본선 */
         .base-line { stroke: #334155; stroke-width: 4; fill: none; }
         
-        /* 피보나치 분석선 (파란색 오버레이) */
+        /* 분석선 (파란색 오버레이) */
         .fibo-trace { 
             stroke: #3b82f6; stroke-width: 6; fill: none; 
-            stroke-dasharray: 2000; stroke-dashoffset: 2000; 
+            stroke-linecap: round; stroke-linejoin: round;
+            transition: stroke-dashoffset 1.5s ease-in-out;
         }
 
-        /* 애니메이션 실행 클래스 */
-        .start-anim { animation: draw 4s forwards cubic-bezier(0.4, 0, 0.2, 1); }
-        @keyframes draw { to { stroke-dashoffset: 0; } }
-
-        /* 피보나치 레벨선 */
-        .level-line { stroke-width: 1; stroke-dasharray: 5; opacity: 0; transition: opacity 1s; }
-        .level-text { font-size: 12px; font-weight: bold; opacity: 0; transition: opacity 1s; }
+        /* 피보나치 레벨 */
+        .level-line { stroke-width: 1; stroke-dasharray: 5; opacity: 0.3; }
+        .level-text { font-size: 12px; font-weight: bold; opacity: 0.7; }
         
-        .show-level { opacity: 1 !important; }
+        /* 라벨 애니메이션 */
+        .label-pop { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity: 0; }
+        @keyframes pop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* 결과 시나리오 선 */
+        .scenario-up { stroke: #10b981; stroke-width: 5; stroke-dasharray: 8; opacity: 0; transition: opacity 0.5s; }
+        .scenario-down { stroke: #f43f5e; stroke-width: 5; stroke-dasharray: 8; opacity: 0; transition: opacity 0.5s; }
     </style>
 </head>
 <body class="p-4 md:p-8">
-    <div class="max-w-6xl mx-auto">
+    <div class="max-w-7xl mx-auto">
         <header class="mb-8 border-b-2 border-slate-700 pb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div>
-                <h1 class="text-4xl font-black text-blue-400 tracking-tighter">AI 차트분석 <span class="text-emerald-400">v1.03</span></h1>
-                <p class="text-slate-400 mt-2 font-medium italic">Fibonacci Retracement: <span class="text-white">Golden Ratio ($0.618$) Support</span></p>
+                <h1 class="text-4xl font-black text-blue-400 tracking-tighter">AI 차트분석 <span class="text-emerald-400">v1.04</span></h1>
+                <p class="text-slate-400 mt-2 font-medium italic">Step-by-Step Fibonacci Analysis: <span class="text-white">Multi-Scenario Projection</span></p>
             </div>
-            <button onclick="startFiboAnalysis()" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-10 py-4 rounded-2xl font-black text-xl shadow-xl shadow-indigo-900/40 transition-all active:scale-95">
-                피보나치 분석 시작 (Click)
+            <button onclick="startAnalysisv104()" id="btn-start" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-10 py-4 rounded-2xl font-black text-xl shadow-xl transition-all active:scale-95">
+                분석 실행 (Analyze)
             </button>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div class="lg:col-span-3 chart-container p-4 md:p-10 shadow-inner">
-                <svg viewBox="0 0 800 500" class="w-full h-auto" id="chart-svg">
-                    <g id="fibo-levels">
-                        <line x1="50" y1="100" x2="750" y2="100" class="level-line stroke-slate-500" /> <text x="760" y="105" class="level-text fill-slate-400">0.0 (High)</text>
-                        
-                        <line x1="50" y1="214.6" x2="750" y2="214.6" class="level-line stroke-blue-400" /> <text x="760" y="219.6" class="level-text fill-blue-400">0.382</text>
-                        
-                        <line x1="50" y1="250" x2="750" y2="250" class="level-line stroke-emerald-400" /> <text x="760" y="255" class="level-text fill-emerald-400">0.500</text>
-                        
-                        <line x1="50" y1="285.4" x2="750" y2="285.4" class="level-line stroke-orange-400" /> <text x="760" y="290.4" class="level-text fill-orange-400">0.618 (Golden)</text>
-                        
-                        <line x1="50" y1="400" x2="750" y2="400" class="level-line stroke-slate-500" /> <text x="760" y="405" class="level-text fill-slate-400">1.0 (Low)</text>
+            <div class="lg:col-span-3 chart-container p-4 md:p-10">
+                <svg viewBox="0 0 950 550" class="w-full h-auto" id="chart-svg">
+                    <g id="levels">
+                        <line x1="50" y1="100" x2="850" y2="100" class="level-line stroke-slate-500" />
+                        <text x="860" y="105" class="level-text fill-slate-400">0.0 (High)</text>
+                        <line x1="50" y1="285.4" x2="850" y2="285.4" class="level-line stroke-orange-400" />
+                        <text x="860" y="290.4" class="level-text fill-orange-400 font-bold">0.618 (Support)</text>
+                        <line x1="50" y1="400" x2="850" y2="400" class="level-line stroke-slate-500" />
+                        <text x="860" y="405" class="level-text fill-slate-400">1.0 (Low)</text>
                     </g>
 
-                    <polyline points="50,400 350,100 535,285.4 750,50" class="base-line" />
+                    <polyline points="50,400 350,100 535,285.4 680,100" class="base-line" />
                     
-                    <polyline id="fibo-path" points="50,400 350,100 535,285.4 750,50" class="fibo-trace" />
-                    
-                    <circle cx="350" cy="100" r="6" fill="#334155" />
-                    <circle cx="535" cy="285.4" r="8" fill="#fbbf24" class="opacity-0" id="rebound-dot" />
+                    <path id="fibo-path" d="M 50 400" class="fibo-trace" fill="none" />
+
+                    <path id="path-up" d="M 680 100 L 800 20" class="scenario-up" fill="none" />
+                    <path id="path-down" d="M 680 100 L 800 220" class="scenario-down" fill="none" />
+
+                    <g id="labels-group">
+                        <g id="label-1" class="opacity-0">
+                            <rect x="300" y="50" width="100" height="30" rx="15" fill="#3b82f6" />
+                            <text x="350" y="70" fill="white" font-size="12" font-weight="bold" text-anchor="middle">전고점 (High)</text>
+                        </g>
+                        <g id="label-2" class="opacity-0">
+                            <rect x="485" y="310" width="120" height="30" rx="15" fill="#f59e0b" />
+                            <text x="545" y="330" fill="white" font-size="12" font-weight="bold" text-anchor="middle">0.618 조정 완료</text>
+                        </g>
+                        <g id="label-3" class="opacity-0">
+                            <rect x="630" y="50" width="120" height="30" rx="15" fill="#6366f1" />
+                            <text x="690" y="70" fill="white" font-size="12" font-weight="bold" text-anchor="middle">저항선 재진입</text>
+                        </g>
+                        <text id="txt-up" x="810" y="30" class="opacity-0 fill-emerald-400 font-bold text-sm">Case A: 돌파 (Rise)</text>
+                        <text id="txt-down" x="810" y="230" class="opacity-0 fill-rose-400 font-bold text-sm">Case B: 하락 (Fall)</text>
+                    </g>
                 </svg>
             </div>
 
-            <div class="space-y-4">
-                <div class="bg-slate-800 p-6 rounded-3xl border-2 border-slate-700">
-                    <h4 class="text-lg font-black text-indigo-400 mb-4 tracking-widest">ANALYSIS LOG</h4>
-                    <div id="log-content" class="space-y-4 text-sm font-mono leading-relaxed">
-                        <p class="text-slate-500">> 분석 대기 중...</p>
-                    </div>
+            <div class="bg-slate-800 p-6 rounded-3xl border-2 border-slate-700 h-fit">
+                <h4 class="text-lg font-black text-indigo-400 mb-4 uppercase tracking-tighter italic">Analysis Log</h4>
+                <div id="log" class="space-y-3 text-xs font-mono text-slate-400">
+                    <p>> 시스템 대기 중...</p>
                 </div>
-            </div>
-        </div>
-
-        <div class="mt-8 bg-slate-900/50 p-8 rounded-3xl border border-slate-800">
-            <h3 class="text-2xl font-bold mb-4 text-white">📏 피보나치 조정이란?</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-slate-300 text-sm leading-relaxed">
-                <p>
-                    주가는 일직선으로 오르지 않습니다. 강하게 상승한 후에는 반드시 차익 실현 매물이 나오며 조정(눌림목)을 거치는데, 이때 <strong>"어디서 멈출 것인가"</strong>를 예측하는 도구가 피보나치입니다. 
-                    특히 <strong class="text-orange-400">$0.618$(61.8%)</strong> 지점은 황금 분할 비율로, 대세 상승장에서 가장 강력한 지지가 일어나는 변곡점으로 통합니다.
-                </p>
-                <p>
-                    본 시뮬레이션에서는 <strong class="text-white">저점(1.0)</strong>에서 <strong class="text-white">고점(0.0)</strong>까지의 상승폭을 기준으로, 주가가 <strong class="text-orange-400">$0.618$</strong> 지점까지 정확히 눌린 뒤 다시 전고점을 돌파하며 상승하는 <strong>'추세 지속'</strong> 패턴을 보여줍니다.
-                </p>
             </div>
         </div>
     </div>
 
     <script>
-        function startFiboAnalysis() {
+        async function startAnalysisv104() {
             const path = document.getElementById('fibo-path');
-            const levels = document.querySelectorAll('.level-line, .level-text');
-            const log = document.getElementById('log-content');
-            const dot = document.getElementById('rebound-dot');
-
+            const log = document.getElementById('log');
+            const btn = document.getElementById('btn-start');
+            
             // 초기화
-            path.classList.remove('start-anim');
-            void path.offsetWidth; // 리플로우 강제
-            levels.forEach(l => l.classList.remove('show-level'));
-            dot.classList.add('opacity-0');
-            log.innerHTML = "";
+            btn.disabled = true;
+            btn.innerText = "분석 중...";
+            path.setAttribute('d', 'M 50 400');
+            document.querySelectorAll('[id^="label-"], [id^="txt-"], .scenario-up, .scenario-down').forEach(el => el.classList.add('opacity-0'));
+            log.innerHTML = "<p class='text-blue-400'>> 분석 엔진 가동...</p>";
 
-            // 1단계: 레벨 가이드 표시
-            setTimeout(() => {
-                levels.forEach(l => l.classList.add('show-level'));
-                log.innerHTML += `<p class="text-blue-300">>> 피보나치 레벨 계산 완료...</p>`;
-            }, 300);
+            const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-            // 2단계: 파란색 선 드로잉 시작
-            setTimeout(() => {
-                path.classList.add('start-anim');
-                log.innerHTML += `<p class="text-white">>> 강력한 1차 상승 발생 (Wave 1)</p>`;
-            }, 1000);
+            // 단계 1: 전고점까지 상승
+            await wait(800);
+            path.setAttribute('d', 'M 50 400 L 350 100');
+            log.innerHTML += "<p class='text-white'>> 1차 목표가 도달: 전고점</p>";
+            await wait(1500);
+            document.getElementById('label-1').classList.replace('opacity-0', 'label-pop');
 
-            // 3단계: 조정 구간 로그
-            setTimeout(() => {
-                log.innerHTML += `<p class="text-orange-400">>> $0.618$ 조정 지점 접근 중...</p>`;
-            }, 2500);
+            // 단계 2: 피보나치 조정
+            await wait(1000);
+            path.setAttribute('d', 'M 50 400 L 350 100 L 535 285.4');
+            log.innerHTML += "<p class='text-orange-400'>> 피보나치 0.618 조정 포인트 접근</p>";
+            await wait(1500);
+            document.getElementById('label-2').classList.replace('opacity-0', 'label-pop');
+            log.innerHTML += "<p class='text-orange-400'>> 하락 비율 61.8% 확인</p>";
 
-            // 4단계: 반등 확인
-            setTimeout(() => {
-                dot.classList.remove('opacity-0');
-                log.innerHTML += `<p class="text-emerald-400 font-bold">>> $0.618$ 지지 성공! 반등 시작</p>`;
-                log.innerHTML += `<p class="text-white">>> 전고점 돌파 시도 중 (Wave 3)</p>`;
-            }, 3800);
+            // 단계 3: 재상승 및 저항선 확인
+            await wait(1000);
+            path.setAttribute('d', 'M 50 400 L 350 100 L 535 285.4 L 680 100');
+            log.innerHTML += "<p class='text-indigo-400'>> 전고점 저항 라인 재진입</p>";
+            await wait(1500);
+            document.getElementById('label-3').classList.replace('opacity-0', 'label-pop');
+
+            // 단계 4: 시나리오 분기 표시
+            await wait(1000);
+            document.querySelector('.scenario-up').style.opacity = "1";
+            document.querySelector('.scenario-down').style.opacity = "1";
+            document.getElementById('txt-up').classList.remove('opacity-0');
+            document.getElementById('txt-down').classList.remove('opacity-0');
+            log.innerHTML += "<p class='text-emerald-400 font-bold'>> 분석 완료: 상하방 시나리오 도출</p>";
+            
+            btn.disabled = false;
+            btn.innerText = "다시 분석하기";
         }
     </script>
 </body>
