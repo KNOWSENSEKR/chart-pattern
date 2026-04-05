@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEMS 차트 패턴 마스터 - 헤드앤숄더</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .chart-container { background: #1e293b; border-radius: 12px; border: 1px solid #334155; }
+        .highlight { color: #fbbf24; font-weight: bold; }
+        .pattern-line { stroke: #fbbf24; stroke-width: 3; fill: none; stroke-dasharray: 5; transition: all 0.5s; }
+        .neckline { stroke: #ef4444; stroke-width: 2; stroke-dasharray: none; }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-5xl mx-auto">
+        <header class="mb-8 border-b border-slate-700 pb-4">
+            <h1 class="text-3xl font-bold text-blue-400">📈 차트 패턴 분석 전문가 (Beta)</h1>
+            <p class="text-slate-400 mt-2">추세 반전 카테고리: <span class="text-white">헤드앤숄더(Head & Shoulders)</span></p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 chart-container p-6 relative">
+                <h3 class="text-xl mb-4 font-semibold">패턴 시각화 가이드</h3>
+                <svg viewBox="0 0 800 400" class="w-full h-auto">
+                    <polyline points="50,300 150,150 200,220 350,50 450,250 550,150 650,380" fill="none" stroke="#475569" stroke-width="2" />
+                    
+                    <polyline id="pattern" points="150,150 200,220 350,50 450,250 550,150" class="pattern-line" />
+                    
+                    <line x1="180" y1="225" x2="480" y2="255" class="neckline" />
+                    <text x="490" y="265" fill="#ef4444" font-size="14">Neckline (지지선)</text>
+
+                    <circle cx="150" cy="150" r="6" fill="#fbbf24" /><text x="120" y="140" fill="white">왼쪽 어깨</text>
+                    <circle cx="350" cy="50" r="8" fill="#3b82f6" /><text x="340" y="35" fill="white" font-weight="bold">머리(Head)</text>
+                    <circle cx="550" cy="150" r="6" fill="#fbbf24" /><text x="560" y="140" fill="white">오른쪽 어깨</text>
+                    
+                    <path d="M 600,300 L 600,380 M 590,370 L 600,380 L 610,370" stroke="#ef4444" stroke-width="3" fill="none" />
+                </svg>
+                <div class="mt-4 text-sm text-slate-400 text-center italic">
+                    * 위 이미지는 전형적인 헤드앤숄더의 수치적 모델링입니다.
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <section class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+                    <h4 class="text-lg font-bold text-yellow-500 mb-3">#핵심_키워드</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-slate-700 px-3 py-1 rounded-full text-xs">상승→하락 반전</span>
+                        <span class="bg-slate-700 px-3 py-1 rounded-full text-xs">넥라인 이탈</span>
+                        <span class="bg-slate-700 px-3 py-1 rounded-full text-xs">매도 시그널</span>
+                    </div>
+                </section>
+
+                <section class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+                    <h4 class="text-lg font-bold text-blue-400 mb-3">전문가 분석 로직</h4>
+                    <p class="text-sm leading-relaxed text-slate-300">
+                        1. <span class="highlight">오른쪽 어깨</span>가 머리 고점을 넘지 못함 (매수세 소멸).<br>
+                        2. 넥라인 이탈 시 목표 하락치($H$) 계산:<br>
+                        <code class="block bg-black p-2 mt-2 rounded text-green-400">Target = BreakPoint - (Head - Neckline)</code>
+                    </p>
+                </section>
+
+                <button onclick="alert('다음 패턴: 역헤드앤숄더 준비 중!')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition">
+                    다음 패턴 보기
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
